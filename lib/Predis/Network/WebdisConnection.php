@@ -86,6 +86,11 @@ class WebdisConnection implements IConnectionSingle {
         }
     }
 
+    private static function argumentsSerializer($str, $arg) {
+        $str .= '/' . urlencode($arg);
+        return $str;
+    }
+
     public function connect() {
         // NOOP
     }
@@ -104,11 +109,6 @@ class WebdisConnection implements IConnectionSingle {
 
     public function readResponse(ICommand $command) {
         self::throwNotYetImplementedException(__CLASS__, __FUNCTION__);
-    }
-
-    private static function argumentsSerializer($str, $arg) {
-        $str .= '/' . urlencode($arg);
-        return $str;
     }
 
     public function executeCommand(ICommand $command) {
