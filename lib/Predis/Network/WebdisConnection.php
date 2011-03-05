@@ -71,12 +71,7 @@ class WebdisConnection implements IConnectionSingle {
 
     private function getStatusHandler() {
         return function($payload) {
-            switch ($payload) {
-                case 'OK':
-                    return true;
-                default:
-                    return $payload;
-            }
+            return $payload === 'OK' ? true : $payload;
         };
     }
 
