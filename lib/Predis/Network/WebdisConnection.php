@@ -13,8 +13,6 @@ implemented yet (or they simply cannot be implemented at all). Here is a list:
   - Publish / Subscribe.
   - MULTI / EXEC transactions (not yet supported by Webdis).
 
-Webdis currently needs to be patched in formats/raw.c to make it return replies
-that are correctly formatted according to the Redis protocol specifications.
 */
 
 namespace Predis\Network;
