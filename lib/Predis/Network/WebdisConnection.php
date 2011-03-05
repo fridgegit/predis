@@ -111,17 +111,18 @@ class WebdisConnection implements IConnectionSingle {
         self::throwNotYetImplementedException(__CLASS__, __FUNCTION__);
     }
 
+    private static function argumentsSerializer($str, $arg) {
+        $str .= '/' . urlencode($arg);
+        return $str;
+    }
+
     public function executeCommand(ICommand $command) {
         $params = $this->_parameters;
-        $requestUrl = sprintf("%s://%s:%d/%s%s.raw",
-            $params->scheme, $params->host, $params->port, $command->getId(),
-            array_reduce($command->getArguments(), function($str, $arg) {
-                $str .= '/' . urlencode($arg);
-                return $str;
-            })
-        );
+        $arguments = array_reduce($command->getArguments(), 'self::argumentsSerializer');
 
-        $request = new HttpRequest($requestUrl);
+        $requestUrl = "{$params->scheme}://{$params->host}:{$params->port}";
+        $request = new HttpRequest($requestUrl, HttpRequest::METH_POST);
+        $request->setBody(sprintf('%s%s.raw', $command->getId(), $arguments));
         $request->send();
 
         phpiredis_reader_feed($this->_reader, $request->getResponseBody());
