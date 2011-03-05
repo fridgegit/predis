@@ -46,7 +46,7 @@ class WebdisConnection implements IConnectionSingle {
             throw new \InvalidArgumentException("Invalid scheme: {$parameters->scheme}");
         }
         $this->_parameters = $parameters;
-        $this->initializeReader();
+        $this->_reader = $this->initializeReader();
     }
 
     public function __destruct() {
@@ -63,15 +63,10 @@ class WebdisConnection implements IConnectionSingle {
     }
 
     private function initializeReader() {
-        $this->_reader = phpiredis_reader_create();
-        phpiredis_reader_set_status_handler(
-            $this->_reader,
-            $this->getStatusHandler()
-        );
-        phpiredis_reader_set_error_handler(
-            $this->_reader,
-            $this->getErrorHandler(true)
-        );
+        $reader = phpiredis_reader_create();
+        phpiredis_reader_set_status_handler($reader, $this->getStatusHandler());
+        phpiredis_reader_set_error_handler($reader, $this->getErrorHandler(true));
+        return $reader;
     }
 
     private function getStatusHandler() {
