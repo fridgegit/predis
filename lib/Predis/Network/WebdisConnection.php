@@ -30,7 +30,7 @@ use Predis\Commands\ICommand;
 const ERR_MSG_EXTENSION = 'The %s extension must be loaded in order to be able to use this connection class';
 
 class WebdisConnection implements IConnectionSingle {
-    private $_parameters, $_resource, $_reader, $_throwErrors;
+    private $_parameters, $_resource, $_reader;
 
     private static function throwNotYetImplementedException($class, $function) {
         throw new \RuntimeException("The method $class::$function() has not been implemented yet");
@@ -46,7 +46,6 @@ class WebdisConnection implements IConnectionSingle {
             throw new \InvalidArgumentException("Invalid scheme: {$parameters->scheme}");
         }
         $this->_parameters = $parameters;
-        $this->_throwErrors = true;
         $this->initializeReader();
     }
 
@@ -65,8 +64,14 @@ class WebdisConnection implements IConnectionSingle {
 
     private function initializeReader() {
         $this->_reader = phpiredis_reader_create();
-        phpiredis_reader_set_status_handler($this->_reader, $this->getStatusHandler());
-        phpiredis_reader_set_error_handler($this->_reader, $this->getErrorHandler());
+        phpiredis_reader_set_status_handler(
+            $this->_reader,
+            $this->getStatusHandler()
+        );
+        phpiredis_reader_set_error_handler(
+            $this->_reader,
+            $this->getErrorHandler(true)
+        );
     }
 
     private function getStatusHandler() {
@@ -75,15 +80,17 @@ class WebdisConnection implements IConnectionSingle {
         };
     }
 
-    private function getErrorHandler() {
-        if ($this->_throwErrors) {
+    private function getErrorHandler($throwErrors) {
+        if ($throwErrors) {
             return function($errorMessage) {
                 throw new ServerException(substr($errorMessage, 4));
             };
         }
-        return function($errorMessage) {
-            return new ResponseError(substr($errorMessage, 4));
-        };
+        else {
+            return function($errorMessage) {
+                return new ResponseError(substr($errorMessage, 4));
+            };
+        }
     }
 
     public function connect() {
@@ -136,8 +143,10 @@ class WebdisConnection implements IConnectionSingle {
     public function setProtocolOption($option, $value) {
         switch ($option) {
             case 'throw_errors':
-                $this->_throwErrors = (bool) $value;
-                phpiredis_reader_set_error_handler($this->_reader, $this->getErrorHandler());
+                phpiredis_reader_set_error_handler(
+                    $this->_reader,
+                    $this->getErrorHandler((bool) $value)
+                );
                 break;
         }
     }
