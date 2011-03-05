@@ -10,7 +10,6 @@ Since this connection class is highly experimental, some features have not been
 implemented yet (or they simply cannot be implemented at all). Here is a list:
 
   - Pipelining commands.
-  - Sharding (it cannot be used with a clustered connection).
   - Publish / Subscribe.
   - MULTI / EXEC transactions (not yet supported by Webdis).
 
