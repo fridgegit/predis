@@ -3,6 +3,7 @@
 namespace Predis\Options;
 
 use Predis\Network\IConnectionCluster;
+use Predis\Network\RedisCluster;
 use Predis\Network\PredisCluster;
 
 class ClientCluster extends Option {
@@ -27,6 +28,8 @@ class ClientCluster extends Option {
         switch ($fqnOrType) {
             case 'predis':
                 return function() { return new PredisCluster(); };
+            case 'redis':
+                return function() { return new RedisCluster(); };
             default:
                 return function() use($fqnOrType) {
                     return new $fqnOrType();
