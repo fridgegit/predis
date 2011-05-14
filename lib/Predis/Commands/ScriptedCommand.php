@@ -23,11 +23,6 @@ abstract class ScriptedCommand extends ServerEval {
 
     public abstract function getScript();
 
-    protected function getFirstArgument() {
-        $script = $this->getScript();
-        return $this->getId() === 'EVALSHA' ? self::$_sha1Cache[$script] : $script;
-    }
-
     protected function useEvalSHA() {
         return true;
     }
@@ -44,7 +39,11 @@ abstract class ScriptedCommand extends ServerEval {
     }
 
     protected function filterArguments(Array $arguments) {
-        return array_merge(array($this->getFirstArgument(), $this->keysCount()), $arguments);
+        $first = $this->getScript();
+        if ($this->getId() === 'EVALSHA') {
+            $first = self::$_sha1Cache[$first];
+        }
+        return array_merge(array($first, $this->keysCount()), $arguments);
     }
 
     protected function getKeys() {
