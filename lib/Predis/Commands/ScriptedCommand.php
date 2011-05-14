@@ -28,6 +28,11 @@ abstract class ScriptedCommand extends ServerEval {
         return $this->getId() === 'EVALSHA' ? self::$_sha1Cache[$script] : $script;
     }
 
+    public function resetSHA1() {
+        $this->_commandId = 'EVAL';
+        unset(self::$_sha1Cache[$this->getScript()]);
+    }
+
     protected function keysCount() {
         // The default behaviour for the base class is to use all the arguments
         // passed to a scripted command to populate the KEYS table in Lua.
