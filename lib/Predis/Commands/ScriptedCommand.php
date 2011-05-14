@@ -8,7 +8,7 @@ abstract class ScriptedCommand extends ServerEval {
 
     public function __construct() {
         $script = $this->getScript();
-        if (isset(self::$_sha1Cache[$script])) {
+        if ($this->useEvalSHA() && isset(self::$_sha1Cache[$script])) {
             $this->_commandId = 'EVALSHA';
         }
         else {
@@ -26,6 +26,10 @@ abstract class ScriptedCommand extends ServerEval {
     protected function getFirstArgument() {
         $script = $this->getScript();
         return $this->getId() === 'EVALSHA' ? self::$_sha1Cache[$script] : $script;
+    }
+
+    protected function useEvalSHA() {
+        return true;
     }
 
     public function resetSHA1() {
