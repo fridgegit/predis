@@ -2,9 +2,9 @@
 
 namespace Predis\Network;
 
-use Predis\ResponseError;
 use Predis\ClientException;
 use Predis\ServerException;
+use Predis\RedisClusterException;
 use Predis\Commands\ICommand;
 use Predis\Distribution\RedisClusterDistributor;
 
@@ -72,10 +72,12 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
     }
 
     protected function handleMoved(ICommand $command, $moveMessage) {
-        list(, $slot, $id) = explode(' ', $moveMessage, 3);
+        list($type, $slot, $id) = explode(' ', $moveMessage, 3);
         $connection = $this->getConnectionById($id);
         if (isset($connection)) {
-            $this->_slots[$slot] = $connection;
+            if ($type === 'MOVED') {
+                $this->_slots[$slot] = $connection;
+            }
             return $this->executeCommand($command);
         }
         throw new ClientException("Connection $id is not registered");
@@ -94,23 +96,11 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
         try {
             $reply = $connection->executeCommand($command);
         }
-        catch (ServerException $exception) {
-            switch ($exception->getErrorType()) {
-                case 'MOVED':
-                case 'ASK':
-                    return $this->handleMoved($command, $exception->getMessage());
-                default:
-                    throw $exception;
-            }
+        catch (RedisClusterException $exception) {
+            $reply = $exception;
         }
-        if (isset($reply->error)) {
-            switch ($reply->type) {
-                case 'MOVED':
-                case 'ASK':
-                    return $this->handleMoved($command, $reply->message);
-                default:
-                    return $reply;
-            }
+        if ($reply instanceof RedisClusterException) {
+            return $this->handleMoved($command, $reply->getMessage());
         }
         return $reply;
     }

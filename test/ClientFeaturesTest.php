@@ -162,14 +162,14 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
     }
 
 
-    /* Predis\ResponseError */
+    /* Predis\ServerException */
 
-    function testResponseError() {
+    function testServerException() {
         $errorMessage = 'ERROR MESSAGE';
-        $response = new \Predis\ResponseError($errorMessage);
+        $response = new \Predis\ServerException($errorMessage);
 
-        $this->assertTrue($response->error);
-        $this->assertEquals($errorMessage, $response->message);
+        $this->assertInstanceOf('Predis\IReplyObject', $response);
+        $this->assertEquals($errorMessage, $response->getMessage());
         $this->assertEquals($errorMessage, (string)$response);
     }
 
@@ -308,8 +308,8 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         );
         $connection->writeBytes($rawCmdUnexpected);
         $errorReply = $reader->read($connection);
-        $this->assertInstanceOf('\Predis\ResponseError', $errorReply);
-        $this->assertEquals(RC::EXCEPTION_WRONG_TYPE, $errorReply->message);
+        $this->assertInstanceOf('\Predis\ServerException', $errorReply);
+        $this->assertEquals(RC::EXCEPTION_WRONG_TYPE, $errorReply->getMessage());
 
         $reader->setHandler(
             \Predis\Protocols\Text\TextProtocol::PREFIX_ERROR,
@@ -454,7 +454,7 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         });
 
         $this->assertInternalType('array', $replies);
-        $this->assertInstanceOf('\Predis\ResponseError', $replies[1]);
+        $this->assertInstanceOf('\Predis\ServerException', $replies[1]);
         $this->assertTrue($client->exists('foo'));
         $this->assertTrue($client->exists('hoge'));
     }
@@ -575,7 +575,7 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         });
 
         $this->assertInternalType('array', $replies);
-        $this->assertInstanceOf('\Predis\ResponseError', $replies[1]);
+        $this->assertInstanceOf('\Predis\ServerException', $replies[1]);
         $this->assertTrue($client->exists('foo'));
         $this->assertTrue($client->exists('hoge'));
     }
