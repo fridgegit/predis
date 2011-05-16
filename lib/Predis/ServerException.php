@@ -3,8 +3,8 @@
 namespace Predis;
 
 class ServerException extends PredisException implements IReplyObject {
-    public function getRedisErrorType() {
-        $message = $this->getMessage();
-        return substr($message, 0, strpos($message, ' '));
+    public function getErrorType() {
+        list($errorType, ) = explode(' ', $this->getMessage(), 2);
+        return $errorType;
     }
 }
