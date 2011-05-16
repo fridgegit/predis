@@ -75,10 +75,15 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
         list($type, $slot, $host) = $exception->getMoveArguments();
         $connection = $this->getConnectionById($host);
         if (isset($connection)) {
-            if ($type === 'MOVED') {
-                $this->_slots[$slot] = $connection;
+            switch ($type) {
+                case 'MOVED':
+                    $this->_slots[$slot] = $connection;
+                    return $this->executeCommand($command);
+                case 'ASK':
+                    return $connection->executeCommand($command);
+                default:
+                    throw new ClientException("Unknown redis cluster error: $type");
             }
-            return $this->executeCommand($command);
         }
         throw new ClientException("Connection for $host is not registered");
     }
