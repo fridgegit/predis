@@ -71,16 +71,16 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
         return new \ArrayIterator($this->_pool);
     }
 
-    protected function handleMoved(ICommand $command, $moveMessage) {
-        list($type, $slot, $id) = explode(' ', $moveMessage, 3);
-        $connection = $this->getConnectionById($id);
+    protected function handleMoved(ICommand $command, RedisClusterException $exception) {
+        list($type, $slot, $host) = $exception->getMoveArguments();
+        $connection = $this->getConnectionById($host);
         if (isset($connection)) {
             if ($type === 'MOVED') {
                 $this->_slots[$slot] = $connection;
             }
             return $this->executeCommand($command);
         }
-        throw new ClientException("Connection $id is not registered");
+        throw new ClientException("Connection for $host is not registered");
     }
 
     public function writeCommand(ICommand $command) {
@@ -100,7 +100,7 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
             $reply = $exception;
         }
         if ($reply instanceof RedisClusterException) {
-            return $this->handleMoved($command, $reply->getMessage());
+            return $this->handleMoved($command, $reply);
         }
         return $reply;
     }
