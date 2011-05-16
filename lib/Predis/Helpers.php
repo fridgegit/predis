@@ -46,7 +46,8 @@ class Helpers {
     }
 
     public static function handleRedisError($serverMessage, $throw = false) {
-        switch (substr($serverMessage, 0, strpos($serverMessage, ' '))) {
+        list($type, ) = explode(' ', $serverMessage, 2);
+        switch ($type) {
             case 'MOVED':
             case 'ASK':
                 $error = new RedisClusterException($serverMessage);
