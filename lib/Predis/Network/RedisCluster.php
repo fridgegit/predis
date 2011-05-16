@@ -72,7 +72,7 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
     }
 
     protected function handleMoved(ICommand $command, RedisClusterException $exception) {
-        list($type, $slot, $host) = $exception->getMoveArguments();
+        list($type, $slot, $host) = $exception->getMoveDetails();
         $connection = $this->getConnectionById($host);
         if (isset($connection)) {
             switch ($type) {

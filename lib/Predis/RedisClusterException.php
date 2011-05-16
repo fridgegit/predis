@@ -3,7 +3,7 @@
 namespace Predis;
 
 class RedisClusterException extends ServerException implements IReplyObject {
-    public function getMoveArguments() {
+    public function getMoveDetails() {
         return explode(' ', $this->getMessage(), 3);
     }
 }
