@@ -4,7 +4,7 @@ namespace Predis\Network;
 
 use Predis\ClientException;
 use Predis\ServerException;
-use Predis\RedisClusterException;
+use Predis\IRedisServerError;
 use Predis\Commands\ICommand;
 use Predis\Distribution\RedisClusterDistributor;
 
@@ -67,25 +67,36 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
         }
     }
 
+    protected function onMoveRequest(ICommand $command, $request, $details) {
+        list($slot, $host) = explode(' ', $details, 2);
+        $connection = $this->getConnectionById($host);
+        if (!isset($connection)) {
+            throw new ClientException("Connection for $host is not registered");
+        }
+        switch ($request) {
+            case 'MOVED':
+                $this->_slots[$slot] = $connection;
+                return $this->executeCommand($command);
+            case 'ASK':
+                return $connection->executeCommand($command);
+            default:
+                throw new ClientException("Unexpected request type for a move request: $request");
+        }
+    }
+
     public function getIterator() {
         return new \ArrayIterator($this->_pool);
     }
 
-    protected function handleMoved(ICommand $command, RedisClusterException $exception) {
-        list($type, $slot, $host) = $exception->getMoveDetails();
-        $connection = $this->getConnectionById($host);
-        if (isset($connection)) {
-            switch ($type) {
-                case 'MOVED':
-                    $this->_slots[$slot] = $connection;
-                    return $this->executeCommand($command);
-                case 'ASK':
-                    return $connection->executeCommand($command);
-                default:
-                    throw new ClientException("Unknown redis cluster error: $type");
-            }
+    protected function handleServerError(ICommand $command, IRedisServerError $error) {
+        list($type, $details) = explode(' ', $error->getMessage(), 2);
+        switch ($type) {
+            case 'MOVED':
+            case 'ASK':
+                return $this->onMoveRequest($command, $type, $details);
+            default:
+                return $error;
         }
-        throw new ClientException("Connection for $host is not registered");
     }
 
     public function writeCommand(ICommand $command) {
@@ -101,11 +112,11 @@ class RedisCluster implements IConnectionCluster, \IteratorAggregate {
         try {
             $reply = $connection->executeCommand($command);
         }
-        catch (RedisClusterException $exception) {
+        catch (ServerException $exception) {
             $reply = $exception;
         }
-        if ($reply instanceof RedisClusterException) {
-            return $this->handleMoved($command, $reply);
+        if ($reply instanceof IRedisServerError) {
+            return $this->handleServerError($command, $reply);
         }
         return $reply;
     }

@@ -3,9 +3,9 @@
 namespace Predis\Network;
 
 use Predis\Helpers;
+use Predis\ResponseError;
 use Predis\ResponseQueued;
 use Predis\ServerException;
-use Predis\RedisClusterException;
 use Predis\IConnectionParameters;
 use Predis\Commands\ICommand;
 use Predis\Iterators\MultiBulkResponseSimple;
@@ -163,7 +163,10 @@ class StreamConnection extends ConnectionBase {
                 return (int) $payload;
 
             case '-':    // error
-                return Helpers::handleRedisError($payload, $this->_throwErrors);
+                if ($this->_throwErrors) {
+                    throw new ServerException($payload);
+                }
+                return new ResponseError($payload);
 
             default:
                 $this->onProtocolError("Unknown prefix: '$prefix'");

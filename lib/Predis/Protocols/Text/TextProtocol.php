@@ -2,7 +2,6 @@
 
 namespace Predis\Protocols\Text;
 
-use Predis\Helpers;
 use Predis\ResponseError;
 use Predis\ResponseQueued;
 use Predis\ServerException;
@@ -79,7 +78,10 @@ class TextProtocol implements IProtocolProcessor {
                 return (int) $payload;
 
             case '-':    // error
-                return Helpers::handleRedisError($payload, $this->_throwErrors);
+                if ($this->_throwErrors) {
+                    throw new ServerException($payload);
+                }
+                return new ResponseError($payload);
 
             default:
                 Helpers::onCommunicationException(new ProtocolException(

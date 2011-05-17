@@ -19,10 +19,10 @@ consult the repository of the project at http://github.com/seppo0010/phpiredis
 namespace Predis\Network;
 
 use Predis\Helpers;
+use Predis\ResponseError;
 use Predis\ResponseQueued;
 use Predis\ClientException;
 use Predis\ServerException;
-use Predis\RedisClusterException;
 use Predis\IConnectionParameters;
 use Predis\Commands\ICommand;
 
@@ -86,7 +86,10 @@ class PhpiredisConnection extends ConnectionBase {
 
     private function getErrorHandler($throwErrors = true) {
         return function($errorMessage) use ($throwErrors) {
-            Helpers::handleRedisError($errorMessage, $throwErrors);
+            if ($throwErrors) {
+                throw new ServerException($errorMessage);
+            }
+            return new ResponseError($errorMessage);
         };
     }
 

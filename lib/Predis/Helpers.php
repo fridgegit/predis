@@ -44,21 +44,4 @@ class Helpers {
         }
         return $key;
     }
-
-    public static function handleRedisError($serverMessage, $throw = false) {
-        list($type, ) = explode(' ', $serverMessage, 2);
-        switch ($type) {
-            case 'MOVED':
-            case 'ASK':
-                $error = new RedisClusterException($serverMessage);
-                break;
-            default:
-                $error = new ServerException($serverMessage);
-                break;
-        }
-        if ($throw) {
-            throw $error;
-        }
-        return $error;
-    }
 }
