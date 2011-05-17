@@ -162,13 +162,14 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
     }
 
 
-    /* Predis\ServerException */
+    /* Predis\ResponseError */
 
-    function testServerException() {
+    function testResponseError() {
         $errorMessage = 'ERROR MESSAGE';
-        $response = new \Predis\ServerException($errorMessage);
+        $response = new \Predis\ResponseError($errorMessage);
 
         $this->assertInstanceOf('Predis\IReplyObject', $response);
+        $this->assertInstanceOf('Predis\IRedisServerError', $response);
         $this->assertEquals($errorMessage, $response->getMessage());
         $this->assertEquals($errorMessage, (string)$response);
     }
@@ -308,7 +309,7 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         );
         $connection->writeBytes($rawCmdUnexpected);
         $errorReply = $reader->read($connection);
-        $this->assertInstanceOf('\Predis\ServerException', $errorReply);
+        $this->assertInstanceOf('\Predis\ResponseError', $errorReply);
         $this->assertEquals(RC::EXCEPTION_WRONG_TYPE, $errorReply->getMessage());
 
         $reader->setHandler(
@@ -454,7 +455,7 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         });
 
         $this->assertInternalType('array', $replies);
-        $this->assertInstanceOf('\Predis\ServerException', $replies[1]);
+        $this->assertInstanceOf('\Predis\ResponseError', $replies[1]);
         $this->assertTrue($client->exists('foo'));
         $this->assertTrue($client->exists('hoge'));
     }
@@ -575,7 +576,7 @@ class ClientFeaturesTestSuite extends PHPUnit_Framework_TestCase {
         });
 
         $this->assertInternalType('array', $replies);
-        $this->assertInstanceOf('\Predis\ServerException', $replies[1]);
+        $this->assertInstanceOf('\Predis\ResponseError', $replies[1]);
         $this->assertTrue($client->exists('foo'));
         $this->assertTrue($client->exists('hoge'));
     }

@@ -17,4 +17,8 @@ class ResponseError implements IRedisServerError {
         list($errorType, ) = explode(' ', $this->getMessage(), 2);
         return $errorType;
     }
+
+    public function __toString() {
+        return $this->getMessage();
+    }
 }

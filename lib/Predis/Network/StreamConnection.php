@@ -2,7 +2,6 @@
 
 namespace Predis\Network;
 
-use Predis\Helpers;
 use Predis\ResponseError;
 use Predis\ResponseQueued;
 use Predis\ServerException;

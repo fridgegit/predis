@@ -2,6 +2,7 @@
 
 namespace Predis\Protocols\Text;
 
+use Predis\Helpers;
 use Predis\ResponseError;
 use Predis\ResponseQueued;
 use Predis\ServerException;
